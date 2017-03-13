@@ -4,6 +4,7 @@ import random
 
 import time
 from celery import Celery
+from celery import uuid
 from websocket_client import ws_client
 from flask_mail import Mail, Message
 from flask import Flask, request, render_template, session, flash, redirect, \
@@ -12,8 +13,9 @@ from flask import Flask, request, render_template, session, flash, redirect, \
 app = Flask(__name__)
 
 # Flask-Mail configuration
-app.config['MAIL_SERVER'] = ''
-app.config['MAIL_PORT'] = ''
+app.config['SECRET_KEY'] = 'test126mail'
+app.config['MAIL_SERVER'] = 'smtp.126.com'
+app.config['MAIL_PORT'] = 25
 app.config['MAIL_USE_TLS'] = ''
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
@@ -65,6 +67,7 @@ def long_task(self):
     size = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]
     message = ''
     total = random.randint(20, 80)
+    time.sleep(5)
     for i in range(total):
         message = 'Wow, {0}{1}...'.format(
             random.choice(size), random.choice(uppercase)
@@ -101,7 +104,8 @@ def index():
 
 @app.route('/longtask', methods=['POST'])
 def longtask():
-    task = long_task.apply_async()
+    task_id = uuid()  # create your task_id
+    task = long_task.apply_async(task_id=task_id)
     return jsonify({}), 202, {'Location': url_for('taskstatus', task_id=task.id)}
 
 
@@ -136,5 +140,36 @@ def taskstatus(task_id):
     return jsonify(response)
 
 
+def test_send(task_id):
+    task = long_task.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state != 'FAILURE':
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    while response.get("state", "ERROR") != "SUCCESSED":
+        ws_client(response)
+    ws_client(response)
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
