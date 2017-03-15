@@ -14,7 +14,6 @@ Jinja2==2.9.5
 kombu==4.0.2
 MarkupSafe==1.0
 packaging==16.8
-pkg-resources==0.0.0
 pyparsing==2.2.0
 pytz==2016.10
 redis==2.10.5
