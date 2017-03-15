@@ -15,7 +15,7 @@
     <p style="color: red;">{{ message }}</p>
     {% endfor %}
     <form method="POST">
-      <p>Send test email to: <input type="text" name="email" value="{{ email }}"></p>
+      <p>Send test email to: <input type="email" name="email" value="{{ email }}" required></p>
       <input type="submit" name="submit" value="Send">
       <input type="submit" name="submit" value="Send in 1 minute">
     </form>
