@@ -2,6 +2,8 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
 
 """
 # default
@@ -21,11 +23,41 @@ For more details, please visit:
 
 """
 
-engine = create_engine('mysql+pymysql://root:h@localhost:3306/irain_park')
+engine = create_engine('mysql+pymysql://username:password@localhost:3306/database')
 
 Session = sessionmaker(bind=engine, autocommit=True)
 
 db = Session()
+Base = declarative_base()
+
+
+class CRUDMixin(object):
+    def __repr__(self):
+        return "<{}>".format(self.__class__.__name__)
+
+    def update(self):
+        """Saves the object to the database."""
+        db.commit()
+        return self
+
+    def save(self):
+        """Saves the object to the database."""
+        db.add(self)
+        db.commit()
+        return self
+
+    def delete(self):
+        """Delete the object from the database."""
+        db.delete(self)
+        db.commit()
+        return self
+
+    @classmethod
+    def clear(cls):
+        """Delete all datas form database"""
+        db.query(cls).delete()
+        db.commit()
+
 
 
 class Transaction(object):

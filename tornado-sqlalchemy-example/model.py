@@ -1,7 +1,5 @@
-from sqlalchemy import Column, String
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from sqlalchemy import Column, String, Integer
+from db import Base, CRUDMixin
 
 
 class User(Base):
@@ -10,3 +8,4 @@ class User(Base):
     id = Column(String(20), primary_key=True)
     username = Column(String(20))
     password = Column(String(100))
+

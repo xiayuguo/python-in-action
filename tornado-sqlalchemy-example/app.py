@@ -16,8 +16,15 @@ class BaseHandler(tornado.web.RequestHandler):
 class IndexHandler(BaseHandler):
     def get(self):
         data = self.db.query(User).all()
+        a = User(username="test", password="test")
+        self.db.add(a)
+        data1 = self.db.query(User).all()
         for d in data:
             self.write("user: %s\n" % d.username)
+
+        self.write("==================")
+        for d in data1:
+            self.write("second %s" % d.username)
 
 
 class Application(tornado.web.Application):
