@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import random
+import logging
 
 import time
 from celery import Celery
@@ -11,7 +12,7 @@ from flask import Flask, request, render_template, session, flash, redirect, \
     url_for, jsonify
 
 app = Flask(__name__)
-
+log = logging.getLogger(__name__)
 # Flask-Mail configuration
 app.config['SECRET_KEY'] = 'test126mail'
 app.config['MAIL_SERVER'] = 'smtp.126.com'
@@ -76,6 +77,7 @@ def long_task(self):
             state='PROGRESS', meta={'current': i, 'total': total, 'status': message}
         )
         time.sleep(1)
+        log.info(self.__dict__)
     return {'current': total, 'total': total, 'status': 'Task completed!',
             'result': message}
 
@@ -136,7 +138,6 @@ def taskstatus(task_id):
             'total': 1,
             'status': str(task.info),  # this is the exception raised
         }
-    print(response)
     return jsonify(response)
 
 

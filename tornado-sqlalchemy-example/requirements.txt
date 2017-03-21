@@ -1,0 +1,9 @@
+PyMySQL==0.7.10
+SQLAlchemy==1.1.6
+argparse==1.2.1
+backports-abc==0.5
+certifi==2017.1.23
+singledispatch==3.4.0.3
+six==1.10.0
+tornado==4.4.2
+wsgiref==0.1.2
