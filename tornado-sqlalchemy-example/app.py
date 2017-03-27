@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import tornado.web
 import tornado.options
@@ -5,12 +6,24 @@ import tornado.ioloop
 
 from db import db
 from model import User
+from tornado.escape import json_decode, to_unicode
 
 
 class BaseHandler(tornado.web.RequestHandler):
     @property
     def db(self):
         return self.application.db
+
+    def get_json_argument(self, name, default=None):
+        """当Content-Type的值为application/json, 解析请求参数"""
+        args = json_decode(self.request.body)
+        name = to_unicode(name)
+        if name in args:
+            return args[name]
+        elif default is not None:
+            return default
+        else:
+            raise tornado.web.MissingArgumentError(name)
 
 
 class IndexHandler(BaseHandler):
