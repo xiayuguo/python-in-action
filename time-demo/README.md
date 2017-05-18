@@ -1,5 +1,48 @@
-# Convert seconds to time
+# How to Convert Time in Python
 
+## Python 中涉及的几种时间类型
+- time string
+```python
+>>> import time
+>>> time.ctime()
+'Thu May 18 18:44:39 2017'
+```
+- datetime tuple(datetime obj)
+```python
+>>> from datetime import datetime
+>>> datetime.now()
+datetime.datetime(2017, 5, 18, 18, 43, 29, 275094)
+```
+- time tuple(time obj)
+```python
+>>> import time
+>>> time.strptime("18 May 17", "%d %b %y")
+time.struct_time(tm_year=2017, tm_mon=5, tm_mday=18, tm_hour=0, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=138, tm_isdst=-1)
+```
+- timestamp
+```python
+>>> import time
+>>> time.time()
+1495104456.522384
+```
+
+## 四种类型之间的转换
+```seq
+Datetime -> String: dt_obj.striftime()
+Datetime -> Time: dt_obj.timetuple()
+Datetime -> Timestamp: 待定
+String -> Datetime: datetime.datetime.strptime(str, format)
+String -> Time: time.strptime(str, format)
+String -> Timestamp: 待定
+Time -> Datetime: datetime.datetime(t_obj)
+Time -> String: time.strptime(format, t_obj)
+Time -> Timestamp: time.mktime(t_obj)
+Timestamp -> Datetime: datetime.datetime.fromtimestamp(ts)
+Timestamp -> String: 待定
+Timestamp -> Time: time.gmtime(ts)
+```
+
+## Convert seconds to time
 - 方案一：
 ```python
 import time
