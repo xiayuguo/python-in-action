@@ -8,7 +8,6 @@ from itertools import groupby
 from operator import itemgetter
 from collections import namedtuple
 from threading import Thread
-from multiprocessing import Pool
 
 
 """
@@ -145,8 +144,7 @@ class Producer(Thread):
             print('生产者(%s)发布任务: %s' % (self.name, str(event)))
 
 
-@asyncio.coroutine
-def generate_people(n=1, nums=20, interval=10):
+async def generate_people(n=1, nums=20, interval=10):
     """生产乘坐电梯的人
 
     :param n: 生成几轮
@@ -159,12 +157,12 @@ def generate_people(n=1, nums=20, interval=10):
     while tmp:
         order = n - tmp + 1
         events = map(lambda x: LiftEvent(str(order - 1) + str(x + 1), 1, random.randint(2, 29)), range(0, nums))
-        print("=====================第%s轮=====================" % str())
+        print("=====================第%s轮=====================" % str(order))
         for event in events:
             print('发布任务: %s' % str(event))
             queue.put(event)
         tmp -= 1
-        yield from asyncio.sleep(interval)
+        await asyncio.sleep(interval)
 
 
 if __name__ == "__main__":
@@ -172,7 +170,9 @@ if __name__ == "__main__":
     random.seed(10)
     loop_producer = asyncio.get_event_loop()
     loop_consumer = asyncio.get_event_loop()
-    loop_producer.run_until_complete(generate_people(3, 1, 0))
-    result = loop_consumer.run_until_complete(Consumer('ABC').run())
+    loop_producer.run_until_complete(generate_people(3, 50, 0))
+    tasks = [Consumer(x).run() for x in string.ascii_uppercase[:4]]
+    result = loop_consumer.run_until_complete(asyncio.wait(tasks))
     loop_consumer.close()
+    loop_producer.close()
     print("time cost %s" % time.time() - start)
