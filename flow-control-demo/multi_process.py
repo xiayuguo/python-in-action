@@ -96,6 +96,19 @@ class Consumer(Process):
             raise RuntimeError("电梯%s已经清空" % self.name)
         self.event.remove(event)
 
+    def run_event(self):
+        lst = ((k, list(v)) for k, v in groupby(sorted(self.event, key=itemgetter(2)), itemgetter(2)))
+        for floor, peoples in lst:
+            self.up_nums(floor - self.current_floor)  # 电梯上行
+            self.out_lift(",".join(map(itemgetter(0), peoples)))  # 电梯停止, 人下电梯
+            for people in peoples:
+                self.event.remove(people)
+
+        # 一轮结束后, 下行到一楼
+        # self.down_nums(self.current_floor - 1)
+        # print("电梯%s: 结束一波任务，在一楼继续等待任务" % self.name)
+        self.status = STOP  # 等待新的人乘坐电梯
+
     def run(self):
         print("电梯%s开始处理事件" % self.name)
         while 1:
@@ -107,18 +120,15 @@ class Consumer(Process):
                     event = self.queue.get()
                     print("电梯%s, 接受任务: %s" % (self.name, str(event)))
                     self.event.append(event)
-
-            lst = ((k, list(v)) for k, v in groupby(sorted(self.event, key=itemgetter(2)), itemgetter(2)))
-            for floor, peoples in lst:
-                self.up_nums(floor - self.current_floor)  # 电梯上行
-                self.out_lift(",".join(map(itemgetter(0), peoples)))  # 电梯停止, 人下电梯
-                for people in peoples:
-                    self.event.remove(people)
-
-            # 一轮结束后, 下行到一楼
-            self.down_nums(self.current_floor - 1)
-            print("电梯%s: 结束一波任务，在一楼继续等待任务" % self.name)
-            self.status = STOP  # 等待新的人乘坐电梯
+                    if event is None:
+                        break
+            if None in self.event:
+                self.event.remove(None)
+                self.queue.put(None)  # 通知其他进程任务结束
+                self.run_event()
+                break
+            else:
+                self.run_event()
 
 
 class Producer(Process):
@@ -157,7 +167,7 @@ if __name__ == "__main__":
     count = cpu_count()
     queue = Queue()
     consumers = [Consumer(i, queue) for i in string.ascii_uppercase[:count]]
-    producers = [Producer(i, queue, 20) for i in string.ascii_lowercase[:count]]
+    producers = [Producer(i, queue, 2) for i in string.ascii_lowercase[:count]]
     for w in producers:
         w.daemon = True
         w.start()
@@ -167,6 +177,7 @@ if __name__ == "__main__":
         c.start()
 
     all_process = consumers + producers
+    flag = 0  # 是否发送结束任务的标志: 0 未发送, 1 已发送
     while 1:
         # print("内存占用率: {0}%; cpu占用率: {1}".format(
         #     str(psutil.virtual_memory().percent),
@@ -176,3 +187,10 @@ if __name__ == "__main__":
                 print("%s %s is dead" % (w.name, w.pid))
                 all_process.remove(w)
         time.sleep(1)
+        if not flag and not list(filter(lambda x: x.is_alive(), producers)):  # 生产者都over了, 发送结束任务
+            queue.put(None)
+            flag = 1
+        if not list(filter(lambda x: x.is_alive(), all_process)):
+            break
+
+

@@ -105,6 +105,20 @@ class Consumer(object):
         self.event.remove(event)
 
     @asyncio.coroutine
+    def run_event(self):
+        lst = ((k, list(v)) for k, v in groupby(sorted(self.event, key=itemgetter(2)), itemgetter(2)))
+        for floor, peoples in lst:
+            yield from self.up_nums(floor - self.current_floor)  # 电梯上行
+            yield from self.out_lift(",".join(map(itemgetter(0), peoples)))  # 电梯停止, 人下电梯
+            for people in peoples:
+                self.event.remove(people)
+
+        # 一轮结束后, 下行到一楼
+        # yield from self.down_nums(self.current_floor - 1)
+        # print("电梯%s: 结束一波任务，在一楼继续等待任务" % self.name)
+        self.status = STOP  # 等待新的人乘坐电梯
+
+    @asyncio.coroutine
     def run(self):
         print("电梯%s开始处理事件" % self.name)
         global queue
@@ -117,18 +131,15 @@ class Consumer(object):
                     event = queue.get()
                     print("电梯%s, 接受任务: %s" % (self.name, str(event)))
                     self.event.append(event)
-
-            lst = ((k, list(v)) for k, v in groupby(sorted(self.event, key=itemgetter(2)), itemgetter(2)))
-            for floor, peoples in lst:
-                yield from self.up_nums(floor - self.current_floor)  # 电梯上行
-                yield from self.out_lift(",".join(map(itemgetter(0), peoples)))  # 电梯停止, 人下电梯
-                for people in peoples:
-                    self.event.remove(people)
-
-            # 一轮结束后, 下行到一楼
-            yield from self.down_nums(self.current_floor - 1)
-            print("电梯%s: 结束一波任务，在一楼继续等待任务" % self.name)
-            self.status = STOP  # 等待新的人乘坐电梯
+                    if event is None:
+                        break
+            if None in self.event:
+                self.event.remove(None)
+                queue.put(None)  # 通知其他协程任务结束
+                yield from self.run_event()
+                break
+            else:
+                yield from self.run_event()
 
 
 class Producer(Thread):
@@ -163,6 +174,7 @@ async def generate_people(n=1, nums=20, interval=10):
             queue.put(event)
         tmp -= 1
         await asyncio.sleep(interval)
+    queue.put(None)  # 设置结束标志
 
 
 if __name__ == "__main__":
@@ -170,9 +182,9 @@ if __name__ == "__main__":
     random.seed(10)
     loop_producer = asyncio.get_event_loop()
     loop_consumer = asyncio.get_event_loop()
-    loop_producer.run_until_complete(generate_people(3, 50, 0))
+    loop_producer.run_until_complete(generate_people(1, 3, 0))
     tasks = [Consumer(x).run() for x in string.ascii_uppercase[:4]]
     result = loop_consumer.run_until_complete(asyncio.wait(tasks))
-    loop_consumer.close()
     loop_producer.close()
-    print("time cost %s" % time.time() - start)
+    loop_consumer.close()
+    print("time cost %s" % str(time.time() - start))

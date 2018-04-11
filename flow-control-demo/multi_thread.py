@@ -97,6 +97,19 @@ class Consumer(Thread):
             raise RuntimeError("电梯%s已经清空" % self.name)
         self.event.remove(event)
 
+    def run_event(self):
+        lst = ((k, list(v)) for k, v in groupby(sorted(self.event, key=itemgetter(2)), itemgetter(2)))
+        for floor, peoples in lst:
+            self.up_nums(floor - self.current_floor)  # 电梯上行
+            self.out_lift(",".join(map(itemgetter(0), peoples)))  # 电梯停止, 人下电梯
+            for people in peoples:
+                self.event.remove(people)
+
+        # 一轮结束后, 下行到一楼
+        # self.down_nums(self.current_floor - 1)
+        # print("电梯%s: 结束一波任务，在一楼继续等待任务" % self.name)
+        self.status = STOP  # 等待新的人乘坐电梯
+
     def run(self):
         print("电梯%s开始处理事件" % self.name)
         global queue
@@ -109,18 +122,16 @@ class Consumer(Thread):
                     event = queue.get()
                     print("电梯%s, 接受任务: %s" % (self.name, str(event)))
                     self.event.append(event)
+                    if event is None:
+                        break
 
-            lst = ((k, list(v)) for k, v in groupby(sorted(self.event, key=itemgetter(2)), itemgetter(2)))
-            for floor, peoples in lst:
-                self.up_nums(floor - self.current_floor)  # 电梯上行
-                self.out_lift(",".join(map(itemgetter(0), peoples)))  # 电梯停止, 人下电梯
-                for people in peoples:
-                    self.event.remove(people)
-
-            # 一轮结束后, 下行到一楼
-            self.down_nums(self.current_floor - 1)
-            print("电梯%s: 结束一波任务，在一楼继续等待任务" % self.name)
-            self.status = STOP  # 等待新的人乘坐电梯
+            if None in self.event:
+                self.event.remove(None)
+                queue.put(None)  # 通知其他线程任务结束
+                self.run_event()
+                break
+            else:
+                self.run_event()
 
 
 class Producer(Thread):
@@ -157,7 +168,7 @@ if __name__ == "__main__":
     random.seed(10)
     count = 4
     consumers = [Consumer(i) for i in string.ascii_uppercase[:count]]
-    producers = [Producer(i, 20) for i in string.ascii_lowercase[:count]]
+    producers = [Producer(i, 2) for i in string.ascii_lowercase[:count]]
     for w in producers:
         w.daemon = True
         w.start()
@@ -167,9 +178,16 @@ if __name__ == "__main__":
         c.start()
 
     all_thread = consumers + producers
+    flag = 0
     while 1:
         for w in all_thread:
             if not w.is_alive():
                 print("%s is dead" % w.name)
                 all_thread.remove(w)
+        if not any((flag, list(filter(lambda x: x.is_alive(), producers)))):  # 生产者都over了, 发送结束任务
+            queue.put(None)
+
+        if not list(filter(lambda x: x.is_alive(), all_thread)):
+            break
+
         time.sleep(1)
