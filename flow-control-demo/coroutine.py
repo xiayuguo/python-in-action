@@ -20,6 +20,7 @@ LiftEvent = namedtuple('LiftEvent', 'user start end')
 
 queue = Queue()
 
+asyncio.gather()
 
 @asyncio.coroutine
 def cost(seconds=0):
