@@ -53,8 +53,8 @@ class IRainTime(object):
     def __init__(self, time_data=None):
         self._datetime = datetime.now()
         if time_data is None:
-            return
-        if isinstance(time_data, datetime):
+            pass
+        elif isinstance(time_data, datetime):
             self._datetime = time_data
         elif isinstance(time_data, string_type):
             self.fromtimestring(time_data)
