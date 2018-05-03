@@ -3,6 +3,10 @@
 import sys
 import time
 
+tuple()
+from datetime import datetime
+
+
 seconds = 12345
 if len(sys.argv) == 2:
     seconds = sys.argv[1]
