@@ -66,6 +66,9 @@ class IRainTime(object):
             self._datetime = datetime.combine(time_data, datetime.min.time())
         else:
             raise TypeError("type %s not supported." % type(time_data))
+        self._timestamp = time.mktime(self._datetime.timetuple())
+        if self._timestamp > maxsize:
+            raise ValueError('timestamp(%s) beyond the maxsize(%s)' % (self._timestamp, maxsize))
 
     def fromtimestamp(self, timestamp):
         ts = self._get_timestamp_from_input(timestamp)
@@ -119,6 +122,35 @@ class IRainTime(object):
 
     def __repr__(self):
         return '<{0} [{1}]>'.format(self.__class__.__name__, self.__str__())
+
+    def __eq__(self, other):
+        return self._timestamp == other._timestamp
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __gt__(self, other):
+        return self._timestamp > other._timestamp
+
+    def __ge__(self, other):
+        return self._timestamp >= self._timestamp
+
+    def __lt__(self, other):
+        return self._timestamp < other._timestamp
+
+    def __le__(self, other):
+        return self._timestamp <= other._timestamp
+
+    def __add__(self, other):
+        return IRainTime(self._timestamp + other._timestamp)
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        return IRainTime(self._timestamp - other._timestamp)
+
+    def __rsub__(self, other):
+        return IRainTime(other._timestamp - self._timestamp)
 
 
 iraintime = IRainTime
