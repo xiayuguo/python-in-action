@@ -49,6 +49,8 @@ class IRainTime(object):
         <IRainTime [2018-05-03 03:06:23]>
         >>> str(iraintime(datetime.now()))
         '2018-05-03 11:15:09'
+        >>> iraintime(iraintime('2018-05-08'))
+        <IRainTime [2018-05-08 00:00:00]>
     """
     def __init__(self, time_data=None):
         self._datetime = datetime.now()
@@ -64,6 +66,8 @@ class IRainTime(object):
             self._datetime = datetime.fromtimestamp(time.mktime(time_data))
         elif isinstance(time_data, date):
             self._datetime = datetime.combine(time_data, datetime.min.time())
+        elif isinstance(time_data, IRainTime):
+            self._datetime = time_data._datetime
         else:
             raise TypeError("type %s not supported." % type(time_data))
         self._timestamp = time.mktime(self._datetime.timetuple())
@@ -151,6 +155,12 @@ class IRainTime(object):
 
     def __rsub__(self, other):
         return IRainTime(other._timestamp - self._timestamp)
+
+    def __getattr__(self, item):
+        if item in self.__dict__:
+            return self.__dict__[item]
+        else:
+            return self._datetime.__getattribute__(item)
 
 
 iraintime = IRainTime
