@@ -13,7 +13,7 @@ else:
     string_type = str
     number_type = (int, float)
 
-
+minsize = 0
 maxsize = sys.maxsize  # 32bit: 2147483647, 64bit: 9223372036854775807
 
 
@@ -72,7 +72,9 @@ class IRainTime(object):
             raise TypeError("type %s not supported." % type(time_data))
         self._timestamp = time.mktime(self._datetime.timetuple())
         if self._timestamp > maxsize:
-            raise ValueError('timestamp(%s) beyond the maxsize(%s)' % (self._timestamp, maxsize))
+            raise ValueError('timestamp(%s) is greater than the maxsize(%s)' % (self._timestamp, maxsize))
+        if self._timestamp < minsize:
+            raise ValueError('timestamp(%s) is less than the minsize(%s)' % (self._timestamp, minsize))
 
     def fromtimestamp(self, timestamp):
         ts = self._get_timestamp_from_input(timestamp)
@@ -105,7 +107,7 @@ class IRainTime(object):
         except:
             raise ValueError("cannot parse '{0}' as a timestamp".format(timestamp))
         else:
-            if ts < 0:
+            if ts < minsize:
                 raise ValueError('timestamp(%s) must be greater than 0' % ts)
             elif ts > maxsize:
                 raise ValueError('timestamp(%s) beyond the maxsize(%s)' % (ts, maxsize))
