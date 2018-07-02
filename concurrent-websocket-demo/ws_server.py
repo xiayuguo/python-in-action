@@ -19,9 +19,9 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         msg_dict["res_time"] = int(time.time() * 1000)
         self.write_message(json.dumps(msg_dict))
 
-async def on_message(self, message):
-    print(f"client: {message}")
-    await self.sleep_send(message, second=1)
+    async def on_message(self, message):
+        print(f"client: {message}")
+        await self.sleep_send(message, second=1)
 
     def on_close(self):
         print("WebSocket closed")
