@@ -23,6 +23,12 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         print(f"client: {message}")
         await self.sleep_send(message, second=1)
 
+    async def ping(self, data):
+        pass
+
+    async def on_ping(self, data):
+        pass
+
     def on_close(self):
         print("WebSocket closed")
 
