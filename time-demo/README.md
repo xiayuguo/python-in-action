@@ -64,3 +64,6 @@ $ python second2time.py 6666666
 output is 03:51:06 from No.1
 output is 1851:51:06 from No.2
 ```
+
+## iraintime.py
+该文件是各种时间转化成标准时间的大集合
