@@ -1,9 +1,10 @@
-from celery import Task
 from celery.utils.log import get_task_logger
 
 from celerydemo import app
 
 logger = get_task_logger(__name__)
+
+print("other's logger is %s" % logger)
 
 
 @app.task

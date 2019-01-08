@@ -22,4 +22,4 @@ result_backend = "redis://127.0.0.1:6379/1"
 timezone = 'Asia/Shanghai'
 
 # 设置序列化的方式, 默认为json
-accept_content = ['json']
+accept_content = ['msgpack', 'json']

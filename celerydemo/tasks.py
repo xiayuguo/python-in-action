@@ -5,6 +5,9 @@ from celerydemo import app
 
 logger = get_task_logger(__name__)
 
+print("tasks's logger is %s" % logger)
+
+
 
 class AddTask(Task):
 
