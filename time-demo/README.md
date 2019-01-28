@@ -67,7 +67,7 @@ output is 1851:51:06 from No.2
 
 ## ctime.py
 该文件是各种时间转化成标准时间的大集合
-```python
+```
 >>> import time
 >>> import ctime
 >>> from datetime import datetime
