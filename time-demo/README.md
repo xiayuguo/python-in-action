@@ -65,5 +65,54 @@ output is 03:51:06 from No.1
 output is 1851:51:06 from No.2
 ```
 
-## iraintime.py
+## ctime.py
 该文件是各种时间转化成标准时间的大集合
+```python
+>>> import time
+>>> import ctime
+>>> from datetime import datetime
+>>> ctime()
+<CTime [2018-05-03 10:55:07]>
+>>> ctime(None)
+<CTime [2018-05-03 10:55:15]>
+>>> ctime('2018-05-03 10:55:15')
+<CTime [2018-05-03 10:55:15]>
+>>> ctime('2018-05-03T10:55:15')
+<CTime [2018-05-03 10:55:15]>
+>>> ctime('2018-05-03T10:55:15.100000')
+<CTime [2018-05-03 10:55:15]>
+>>> ctime('2018-05-03 10:55:15.100000')
+<CTime [2018-05-03 10:55:15]>
+>>> ctime('2018-05-03')
+<CTime [2018-05-03 00:00:00]>
+>>> ctime('10:55:15')
+<CTime [1900-01-01 10:55:15]>
+>>> ctime(datetime.now())
+<CTime [2018-05-03 11:04:14]>
+>>> ctime(time.time())
+<CTime [2018-05-03 11:04:22]>
+>>> ctime(str(time.time()))
+<CTime [2018-05-03 11:04:29]>
+>>> ctime(time.gmtime())
+<CTime [2018-05-03 03:06:23]>
+>>> str(ctime(datetime.now()))
+'2018-05-03 11:15:09'
+>>> ctime(ctime('2018-05-08'))
+<CTime [2018-05-08 00:00:00]>
+>>> a = ctime()
+>>> b = ctime()
+>>> a
+<CTime [2018-07-25 09:53:23]>
+>>> b
+<CTime [2018-07-25 09:53:30]>
+>>> a < b
+True
+>>> a <= b
+True
+>>> a + b
+<CTime [2067-02-15 11:46:53]>
+>>> b - a
+datetime.timedelta(0, 6, 601950)
+>>> format(ctime(), '%Y%m%d%H%M%S')
+'20180725102809'
+```
