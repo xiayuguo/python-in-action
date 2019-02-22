@@ -1,2 +1,2 @@
-# Python
-How to Think Like a Computer Scientist Learning with Python
+# Python In Action
+作者比较懒，暂时没有留下什么。
